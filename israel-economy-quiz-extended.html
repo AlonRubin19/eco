@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+      <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline';">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שאלון הכנה מקיף - כלכלת ישראל</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f0f0f0;
+    }
+    .quiz-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .question {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .options {
+        margin-left: 20px;
+    }
+    .option {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .option:hover {
+        background-color: #f5f5f5;
+    }
+    .option.selected {
+        background-color: #007bff;
+        color: white;
+    }
+    .option.correct {
+        background-color: #28a745;
+        color: white;
+    }
+    .option.incorrect {
+        background-color: #dc3545;
+        color: white;
+    }
+    .explanation {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #e9ecef;
+        border-radius: 5px;
+        display: none;
+    }
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    #result {
+        font-weight: bold;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    @media (max-width: 600px) {
+        body {
+            font-size: 18px;
+        }
+        .option {
+            padding: 15px;
+            margin: 15px 0;
+        }
+        button {
+            padding: 15px 25px;
+            font-size: 18px;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="quiz"></div>
+        <div class="button-container">
+            <button id="prev-btn" onclick="prevQuestion()" style="display: none;">לשאלה הקודמת</button>
+            <button id="next-btn" onclick="nextQuestion()">לשאלה הבאה</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: 'מהו "העשור האבוד" בהיסטוריה הכלכלית של ישראל?',
+                options: ['1948-1958', '1965-1975', '1973-1985', '1985-1995'],
+                correct: 2,
+                explanation: '"העשור האבוד" מתייחס לתקופה שבין 1973 ל-1985, שהתאפיינה בקשיים כלכליים משמעותיים בישראל, כולל אינפלציה גבוהה וגירעון תקציבי גדול.'
+            },
+            {
+                question: 'מהי "תוכנית הייצוב" שהונהגה בישראל ב-1985?',
+                options: ['תוכנית להגדלת הוצאות הממשלה', 'תוכנית להורדת האינפלציה וייצוב המשק', 'תוכנית לעידוד העלייה לישראל', 'תוכנית להגדלת יצוא ההיי-טק'],
+                correct: 1,
+                explanation: 'תוכנית הייצוב של 1985 הייתה תוכנית כלכלית מקיפה שנועדה להוריד את האינפלציה ולייצב את המשק הישראלי.'
+            },
+            {
+                question: 'מה היה שיעור האינפלציה השנתי בישראל בשיאו לפני תוכנית הייצוב?',
+                options: ['כ-20%', 'כ-100%', 'כ-250%', 'כ-445%'],
+                correct: 3,
+                explanation: 'בשנת 1984, שיא האינפלציה בישראל הגיע לכ-445% שנתי.'
+            },
+            {
+                question: 'איזה אירוע כלכלי משמעותי התרחש בישראל ב-1983?',
+                options: ['משבר מניות הבנקים', 'הקמת בנק ישראל', 'חתימת הסכם אוסלו', 'הצטרפות לארגון ה-OECD'],
+                correct: 0,
+                explanation: 'ב-1983 התרחש משבר מניות הבנקים, שבו התגלה כי הבנקים הגדולים מנפחים באופן מלאכותי את מחירי מניותיהם.'
+            },
+            {
+                question: 'מהי המדיניות הכלכלית שאומצה בישראל בתחילת שנות ה-2000?',
+                options: ['הגדלת הוצאות הממשלה', 'צמצום תקציבי וקיצוץ קצבאות', 'הלאמת חברות פרטיות', 'הגדלת מיסים'],
+                correct: 1,
+                explanation: 'בתחילת שנות ה-2000, ישראל אימצה מדיניות של צמצום תקציבי וקיצוץ קצבאות כחלק מהתוכנית להבראת המשק.'
+            },
+            {
+                question: 'מתי הצטרפה ישראל לארגון ה-OECD?',
+                options: ['2000', '2005', '2010', '2015'],
+                correct: 2,
+                explanation: 'ישראל הצטרפה לארגון ה-OECD (הארגון לשיתוף פעולה ולפיתוח כלכלי) בשנת 2010.'
+            },
+            {
+                question: 'מה היה המשבר הכלכלי העולמי המשמעותי שהשפיע על ישראל ב-2008?',
+                options: ['משבר הנפט', 'משבר הסאב-פריים', 'משבר הדוט-קום', 'משבר החוב האירופי'],
+                correct: 1,
+                explanation: 'משבר הסאב-פריים, שהחל בשוק המשכנתאות בארה"ב, השפיע על הכלכלה העולמית ובכללה ישראל ב-2008.'
+            },
+            {
+                question: 'איזה ענף כלכלי בישראל התפתח משמעותית מאז שנות ה-90?',
+                options: ['חקלאות', 'תעשייה כבדה', 'היי-טק', 'תיירות'],
+                correct: 2,
+                explanation: 'ענף ההיי-טק בישראל התפתח משמעותית מאז שנות ה-90 והפך לאחד המנועים המרכזיים של הכלכלה הישראלית.'
+            },
+            {
+                question: 'מה הייתה אחת התוצאות של הרפורמות הכלכליות בתחילת שנות ה-2000?',
+                options: ['עלייה בשיעור האבטלה', 'ירידה בשיעור ההשתתפות בכוח העבודה', 'עלייה בשיעור ההשתתפות בכוח העבודה', 'הגדלת הגירעון הממשלתי'],
+                correct: 2,
+                explanation: 'אחת התוצאות החיוביות של הרפורמות הכלכליות בתחילת שנות ה-2000 הייתה עלייה בשיעור ההשתתפות בכוח העבודה.'
+            },
+            {
+                question: 'איזה אירוע כלכלי משמעותי התרחש בישראל ב-2020?',
+                options: ['הצטרפות לאיחוד האירופי', 'משבר הקורונה', 'גילוי מאגרי גז טבעי גדולים', 'חתימת הסכם סחר חופשי עם סין'],
+                correct: 1,
+                explanation: 'ב-2020, משבר הקורונה היה האירוע הכלכלי המשמעותי ביותר שהשפיע על ישראל, כמו על שאר העולם.'
+            },
+            {
+                question: 'מהו "חוק ההסדרים" בהקשר של תקציב המדינה?',
+                options: ['חוק שמסדיר את היחסים בין הכנסת לממשלה', 'חוק שמלווה את חוק התקציב ומכיל רפורמות ושינויים', 'חוק שקובע את סדרי העדיפויות בתקציב', 'חוק שמסדיר את היחסים בין משרד האוצר לבנק ישראל'],
+                correct: 1,
+                explanation: 'חוק ההסדרים הוא חוק שמלווה את חוק התקציב ומכיל רפורמות, תקנות ושינויים שנועדו ללוות את התקציב.'
+            },
+            {
+                question: 'מהי "הרפורמה בשוק ההון" שהתרחשה בישראל בשנות ה-2000?',
+                options: ['הלאמת הבנקים', 'הפרטת חברות ממשלתיות', 'הפרדה בין קופות הגמל וקרנות הנאמנות לבין הבנקים', 'הקמת הבורסה לניירות ערך'],
+                correct: 2,
+                explanation: 'הרפורמה בשוק ההון כללה הפרדה בין קופות הגמל וקרנות הנאמנות לבין הבנקים, במטרה להגביר את התחרות ולהקטין את הריכוזיות במערכת הפיננסית.'
+            },
+            {
+                question: 'מהי "תוכנית ויסקונסין" שהופעלה בישראל?',
+                options: ['תוכנית לעידוד השקעות זרות', 'תוכנית להחזרת מובטלים למעגל העבודה', 'תוכנית לקידום החינוך הטכנולוגי', 'תוכנית לעידוד עלייה מארה"ב'],
+                correct: 1,
+                explanation: 'תוכנית ויסקונסין, שנקראה גם "תוכנית מהל"ב" או "אורות לתעסוקה", הייתה תוכנית שנועדה להחזיר מקבלי קצבאות הבטחת הכנסה למעגל העבודה.'
+            },
+            {
+                question: 'מהי "הרפורמה במערכת הפנסיה" שהתרחשה בישראל בתחילת שנות ה-2000?',
+                options: ['הלאמת קרנות הפנסיה', 'הפרטת קרנות הפנסיה', 'ביטול פנסיה תקציבית לעובדי מדינה חדשים', 'הגדלת קצבאות הזקנה'],
+                correct: 2,
+                explanation: 'הרפורמה במערכת הפנסיה כללה, בין היתר, ביטול הפנסיה התקציבית לעובדי מדינה חדשים והעברתם לפנסיה צוברת.'
+            },
+            {
+                question: 'מהו "משבר הדוט-קום" שהשפיע על ישראל בתחילת שנות ה-2000?',
+                options: ['משבר בענף התיירות', 'משבר בענף ההיי-טק', 'משבר בענף הבנייה', 'משבר בענף החקלאות'],
+                correct: 1,
+                explanation: 'משבר הדוט-קום היה משבר בענף ההיי-טק שהתרחש בתחילת שנות ה-2000 והשפיע על חברות טכנולוגיה רבות, כולל בישראל.'
+            },
+            {
+                question: 'מהי "תוכנית החשיפה" שהונהגה בישראל בשנות ה-90?',
+                options: ['תוכנית לחשיפת שחיתויות בממשל', 'תוכנית להורדת מכסים והגברת התחרות מיבוא', 'תוכנית לחשיפת ישראל לשווקים חדשים', 'תוכנית לחשיפת מידע ממשלתי לציבור'],
+                correct: 1,
+explanation: 'תוכנית החשיפה הייתה תוכנית להורדה הדרגתית של מכסים ומכסות יבוא, במטרה להגביר את התחרות במשק הישראלי.'
+            },
+            {
+                question: 'מהו "חוק BDO" שנחקק בישראל ב-2005?',
+                options: ['חוק לעידוד השקעות זרות', 'חוק להגבלת כוחם של מונופולים', 'חוק לאכיפת תשלום מיסים', 'חוק להגברת האכיפה של דיני העבודה'],
+                correct: 3,
+                explanation: 'חוק BDO, הידוע גם כ"חוק להגברת האכיפה של דיני העבודה", נועד לשפר את האכיפה של חוקי העבודה בישראל.'
+            },
+            {
+                question: 'מהי "תוכנית הפרטה" שיושמה בישראל בשנות ה-90 וה-2000?',
+                options: ['תוכנית להפרטת בתי ספר', 'תוכנית למכירת חברות ממשלתיות לידיים פרטיות', 'תוכנית להפרטת שירותי בריאות', 'תוכנית להפרטת צה"ל'],
+                correct: 1,
+                explanation: 'תוכנית ההפרטה כללה מכירת חברות ממשלתיות לידיים פרטיות, במטרה להגביר את היעילות הכלכלית ולהקטין את מעורבות הממשלה במשק.'
+            },
+            {
+                question: 'מהו "חוק עידוד השקעות הון" בישראל?',
+                options: ['חוק המעניק הטבות מס למשקיעים זרים', 'חוק המחייב חברות להשקיע בפיתוח', 'חוק המעניק הטבות לחברות המשקיעות בפריפריה ובתעשייה', 'חוק המגביל השקעות הון זר בישראל'],
+                correct: 2,
+                explanation: 'חוק עידוד השקעות הון מעניק הטבות מס ומענקים לחברות המשקיעות בפריפריה ובתעשייה, במטרה לעודד צמיחה כלכלית ופיתוח אזורי.'
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answers = new Array(questions.length).fill(null);
+        let answered = new Array(questions.length).fill(false);
+
+function renderQuestion() {
+    const quizContainer = document.getElementById('quiz');
+    if (!quizContainer) {
+        console.error('לא נמצא אלמנט עם ID "quiz"');
+        return;
+    }
+    const q = questions[currentQuestion];
+    if (!q) {
+        console.error('לא נמצאה שאלה עבור האינדקס', currentQuestion);
+        return;
+    }
+    let html = `
+        <div class="question">
+            <p><strong>שאלה ${currentQuestion + 1} מתוך ${questions.length}:</strong> ${q.question}</p>
+            <div class="options">
+    `;
+    for (let i = 0; i < q.options.length; i++) {
+        html += `
+            <div class="option ${answers[currentQuestion] === i ? (i === q.correct ? 'correct' : 'incorrect') : ''}" 
+                 onclick="selectOption(${i})" 
+                 ${answered[currentQuestion] ? 'style="pointer-events: none;"' : ''}>
+                ${q.options[i]}
+            </div>
+        `;
+    }
+    html += `
+            </div>
+            <div class="explanation" ${answered[currentQuestion] ? 'style="display: block;"' : ''}>${q.explanation}</div>
+        </div>
+    `;
+    quizContainer.innerHTML = html;
+    updateButtons();
+}
+
+        function selectOption(optionIndex) {
+            if (answered[currentQuestion]) return;
+            
+            answers[currentQuestion] = optionIndex;
+            answered[currentQuestion] = true;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, i) => {
+                if (i === questions[currentQuestion].correct) {
+                    option.classList.add('correct');
+                } else if (i === optionIndex && i !== questions[currentQuestion].correct) {
+                    option.classList.add('incorrect');
+                }
+                option.style.pointerEvents = 'none';
+            });
+
+            document.querySelector('.explanation').style.display = 'block';
+
+            if (optionIndex === questions[currentQuestion].correct) {
+                score++;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        function updateButtons() {
+            document.getElementById('prev-btn').style.display = currentQuestion > 0 ? 'block' : 'none';
+            document.getElementById('next-btn').textContent = 
+                currentQuestion === questions.length - 1 ? 'סיים' : 'לשאלה הבאה';
+        }
+
+        function showResult() {
+            const quizContainer = document.getElementById('quiz');
+            quizContainer.innerHTML = `<h2>ציון סופי: ${score} מתוך ${questions.length}</h2>`;
+            document.getElementById('prev-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        renderQuestion();
+    </script>
+</body>
+</html>
